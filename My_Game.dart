@@ -1,6 +1,5 @@
 import 'dart:math';
 import 'package:figuras_flame/figures.dart';
-import 'package:flutter_application_1/figuras.dart';
 import 'package:flame/components.dart';
 import 'package:flame/events.dart';
 import 'package:flame/game.dart';
@@ -8,14 +7,19 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_application_1/Drag.dart';
 import 'package:flutter_application_1/TapButton.dart';
+import 'dart:ui';
 
 class MyGame extends FlameGame with KeyboardEvents {
   final figuravertical = Vector2(100, 200);
   final figurahorizontal = Vector2(200, 100);
-
+ bool  fastandfurious = false;
   final sizedejugador = Vector2(300, 200);
   @override
   bool get debugMode => true;
+
+  
+
+  int veloz= 1;
 
   late TextComponent colision;
 
@@ -63,7 +67,7 @@ class MyGame extends FlameGame with KeyboardEvents {
         TextComponent(text: 'puntaje: $puntos', position: Vector2(1180, 500)));
     await super.onLoad();
 
-    final sizeOfplayer = Vector2(300, 200);
+    
     await add(Flower(
         position: Vector2(size.x / 2, size.y - figuravertical.y),
         paint: Paint()..color = const Color.fromARGB(255, 201, 11, 106),
@@ -82,8 +86,8 @@ class MyGame extends FlameGame with KeyboardEvents {
           moverIzquierda();
         }
       })
-        ..position = Vector2(size.x, size.y - sizeOfplayer.y)
-        ..size = Vector2(size.x + 10, sizeOfplayer.y * 1),
+        ..position = Vector2(size.x, size.y - sizedejugador.y)
+        ..size = Vector2(size.x + 10, sizedejugador.y * 1),
     );
   }
 
@@ -94,13 +98,28 @@ class MyGame extends FlameGame with KeyboardEvents {
     super.update(dt);
     double tf = Random().nextDouble();
     tpmof += dt;
+    super.update(dt);
+    
+
+    if (concolision != 0 &&
+        concolision % 5 == 0 &&
+        !fastandfurious) {
+      veloz += 1;
+      fastandfurious = true;
+     
+      // Aumenta la velocidad de las figuras
+    }
+    if (concolision % 10 != 0) {
+    
+      fastandfurious = false;
+    }
 
     for (Mochila1 mochila in children.query<Mochila1>()) {
-      mochila.position.y += 2; // velocidad 
+      mochila.position.y += veloz; // velocidad 
 
       // agregar puntos si hay colision 
       final flower1 = children.query<Flower>().first;
-      if (mochila.isCollidingWith(flower1)) {
+      if (mochila.colisionxy(flower1)) {
         
         puntos += 10;
         puntostexto.text = 'puntaje: $puntos';
@@ -116,8 +135,8 @@ class MyGame extends FlameGame with KeyboardEvents {
           position:
               Vector2(Random().nextDouble() * (size.x - figuravertical.x), 0),
           size: Vector2(
-            tf * figuravertical.x + 15,
-            tf * figuravertical.y + 30,
+            tf * figuravertical.x + 20,
+            tf * figuravertical.y + 35,
           ),
           paint: Paint()
             ..color = HSLColor.fromAHSL(
@@ -129,11 +148,11 @@ class MyGame extends FlameGame with KeyboardEvents {
       tpmof = 0;
     }
     for (Caballo1 caballo in children.query<Caballo1>()) {
-      caballo.position.y += 2; // velocidad 
+      caballo.position.y += veloz; // velocidad 
 
       
       final flower1 = children.query<Flower>().first;
-      if (caballo.isCollidingWith(flower1)) {
+      if (caballo.colisionxy(flower1)) {
        
         puntos += 10;
         puntostexto.text = 'puntaje: $puntos';
@@ -162,11 +181,11 @@ class MyGame extends FlameGame with KeyboardEvents {
       tpmof = 0;
     }
     for (Caballito1 caballito in children.query<Caballito1>()) {
-      caballito.position.y += 2;
+      caballito.position.y += veloz;
 
       
       final flower1 = children.query<Flower>().first;
-      if (caballito.isCollidingWith(flower1)) {
+      if (caballito.colisionxy(flower1)) {
         // Incrementar colision
         puntos += 10;
         puntostexto.text = 'puntaje: $puntos';
@@ -195,11 +214,11 @@ class MyGame extends FlameGame with KeyboardEvents {
       tpmof = 0;
     }
      for (Puerta1 puerta in children.query<Puerta1>()) {
-      puerta.position.y += 2;
+      puerta.position.y += veloz;
 
       
       final flower1 = children.query<Flower>().first;
-      if (puerta.isCollidingWith(flower1)) {
+      if (puerta.colisionxy(flower1)) {
        
         puntos += 10;
         puntostexto.text = 'puntaje: $puntos';
@@ -228,11 +247,11 @@ class MyGame extends FlameGame with KeyboardEvents {
       tpmof = 0;
     }
     for (Pinguino1 pinguino in children.query<Pinguino1>()) {
-      pinguino.position.y += 2;
+      pinguino.position.y += veloz;
 
       
       final flower1 = children.query<Flower>().first;
-      if (pinguino.isCollidingWith(flower1)) {
+      if (pinguino.colisionxy(flower1)) {
        
         puntos += 10;
         puntostexto.text = 'puntaje: $puntos';
@@ -273,10 +292,63 @@ class MyGame extends FlameGame with KeyboardEvents {
 
   void moverDerecha() {
     final Flower flower = children.query<Flower>().first;
-    flower.position.x += 5;
+    flower.position.x += 8;
 
     if (flower.position.x > size.x) {
       flower.position.x = -flower.size.x;
     }
   }
 }
+class Mochila1 extends Mochila {
+  Mochila1(
+      {required super.position, required super.size, required super.paint});
+
+  bool colisionxy(PositionComponent other) {
+    final Rect myRect = toRect();
+    final Rect otherRect = other.toRect();
+    return myRect.overlaps(otherRect);
+  }
+}
+
+class Caballo1 extends Caballo {
+  Caballo1(
+      {required super.position, required super.size, required super.paint});
+
+  bool colisionxy(PositionComponent other) {
+    final Rect myRect = toRect();
+    final Rect otherRect = other.toRect();
+    return myRect.overlaps(otherRect);
+  }
+}
+
+class Caballito1 extends Caballito {
+  Caballito1(
+      {required super.position, required super.size, required super.paint});
+
+  bool colisionxy(PositionComponent other) {
+    final Rect myRect = toRect();
+    final Rect otherRect = other.toRect();
+    return myRect.overlaps(otherRect);
+  }
+}
+class Puerta1 extends Puerta {
+  Puerta1(
+      {required super.position, required super.size, required super.paint});
+
+  bool colisionxy(PositionComponent other) {
+    final Rect myRect = toRect();
+    final Rect otherRect = other.toRect();
+    return myRect.overlaps(otherRect);
+  }
+}
+ class Pinguino1 extends Pinguino {
+  Pinguino1(
+      {required super.position, required super.size, required super.paint});
+
+  bool colisionxy(PositionComponent other) {
+    final Rect myRect = toRect();
+    final Rect otherRect = other.toRect();
+    return myRect.overlaps(otherRect);
+  }
+}
+
